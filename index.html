@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F5FAF0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C231A" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Piano Alimentare</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
@@ -61,14 +66,17 @@
     --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 20px -10px rgba(0,0,0,0.5);
   }
 
-  *{box-sizing:border-box;}
-  html,body{ margin:0; padding:0; width:100%; }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; padding:0; width:100%; overscroll-behavior-y:contain; }
+  html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
   body{
     background:var(--paper);
     color:var(--ink);
     font-family:'IBM Plex Sans', system-ui, sans-serif;
     -webkit-font-smoothing:antialiased;
   }
+  button, [role="button"]{ touch-action:manipulation; user-select:none; -webkit-user-select:none; }
+  input, textarea{ font-size:16px; } /* evita lo zoom automatico di Safari iOS al focus */
   .app{
     max-width:560px;
     width:100%;
