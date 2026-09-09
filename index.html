@@ -1,0 +1,594 @@
+<title>Piano Alimentare</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --paper:#F5FAF0;
+    --surface:#FFFFFF;
+    --surface-2:#E9F5E1;
+    --ink:#2F3D28;
+    --ink-soft:#67795D;
+    --ink-faint:#9CAC92;
+    --line:#DBEBD0;
+    --accent-on:#8AD07A;
+    --accent-on-ink:#1B5A22;
+    --accent-on-soft:#E1F5D9;
+    --accent-off:#7BCBA6;
+    --accent-off-ink:#0E4A38;
+    --accent-off-soft:#DCF3E9;
+    --shadow: 0 1px 2px rgba(40,70,30,0.07), 0 8px 20px -10px rgba(40,70,30,0.20);
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 9px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1C231A;
+      --surface:#232B20;
+      --surface-2:#2C3527;
+      --ink:#EAF3E4;
+      --ink-soft:#B9C9AF;
+      --ink-faint:#84937A;
+      --line:#3B4535;
+      --accent-on:#9FE08C;
+      --accent-on-ink:#123016;
+      --accent-on-soft:#2A4023;
+      --accent-off:#8ED9BC;
+      --accent-off-ink:#0B2B22;
+      --accent-off-soft:#1E3A30;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 20px -10px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1C231A;
+    --surface:#232B20;
+    --surface-2:#2C3527;
+    --ink:#EAF3E4;
+    --ink-soft:#B9C9AF;
+    --ink-faint:#84937A;
+    --line:#3B4535;
+    --accent-on:#9FE08C;
+    --accent-on-ink:#123016;
+    --accent-on-soft:#2A4023;
+    --accent-off:#8ED9BC;
+    --accent-off-ink:#0B2B22;
+    --accent-off-soft:#1E3A30;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 20px -10px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{
+    max-width:560px;
+    margin:0 auto;
+    padding:0 16px calc(48px + env(safe-area-inset-bottom)) 16px;
+  }
+  h1,h2,h3{ font-family:'Fraunces', Georgia, serif; text-wrap:balance; margin:0; }
+  .num{ font-family:'IBM Plex Mono', 'Courier New', monospace; font-variant-numeric:tabular-nums; }
+
+  /* header */
+  header.top{
+    position:sticky; top:0; z-index:5;
+    background:var(--paper);
+    padding:calc(16px + env(safe-area-inset-top)) 0 12px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .title-row{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+  h1{ font-size:1.5rem; font-weight:700; color:var(--ink); }
+  .stats{ font-size:0.72rem; color:var(--ink-faint); margin-top:2px; letter-spacing:0.02em; }
+
+  .toggle{
+    margin-top:14px;
+    display:grid; grid-template-columns:1fr 1fr;
+    background:var(--surface-2);
+    border-radius:var(--radius-md);
+    padding:4px;
+    gap:4px;
+  }
+  .toggle button{
+    appearance:none; border:none; cursor:pointer;
+    font-family:inherit; font-size:0.92rem; font-weight:600;
+    padding:10px 8px; border-radius:calc(var(--radius-md) - 4px);
+    background:transparent; color:var(--ink-soft);
+    display:flex; flex-direction:column; align-items:center; gap:1px;
+    transition:background .15s ease, color .15s ease;
+  }
+  .toggle button .kcal{ font-size:0.7rem; font-weight:500; opacity:0.85; }
+  .toggle button[data-on="true"][data-day="ON"]{ background:var(--accent-on); color:var(--accent-on-ink); }
+  .toggle button[data-on="true"][data-day="OFF"]{ background:var(--accent-off); color:var(--accent-off-ink); }
+
+  .progress-row{ display:flex; align-items:center; gap:10px; margin-top:12px; }
+  .progress-track{ flex:1; height:6px; border-radius:99px; background:var(--surface-2); overflow:hidden; }
+  .progress-fill{ height:100%; border-radius:99px; transition:width .25s ease; }
+  .progress-label{ font-size:0.72rem; color:var(--ink-faint); white-space:nowrap; }
+
+  /* rules */
+  .rules{
+    margin-top:16px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .rules summary{
+    list-style:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 16px; font-weight:600; font-size:0.95rem;
+  }
+  .rules summary::-webkit-details-marker{ display:none; }
+  .rules summary .chev{ transition:transform .2s ease; color:var(--ink-faint); font-size:0.8rem; }
+  .rules[open] summary .chev{ transform:rotate(180deg); }
+  .rules-grid{
+    padding:2px 16px 16px 16px;
+    display:grid; grid-template-columns:1fr 1fr; gap:8px 10px;
+  }
+  @media (max-width:420px){ .rules-grid{ grid-template-columns:1fr; } }
+  .rule{
+    padding:9px 10px; background:var(--surface-2); border-radius:var(--radius-sm);
+    font-size:0.78rem; line-height:1.35; color:var(--ink-soft);
+  }
+  .rule b{ color:var(--ink); font-weight:600; }
+
+  /* converter */
+  .conv-body{ padding:2px 16px 16px 16px; display:flex; flex-direction:column; gap:12px; }
+  .conv-input-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .conv-input-row label{ font-size:0.85rem; font-weight:600; color:var(--ink); }
+  .conv-input{
+    width:84px; font-family:'IBM Plex Mono','Courier New',monospace; font-size:1rem; font-weight:600;
+    padding:8px 10px; border-radius:var(--radius-sm); border:1px solid var(--line);
+    background:var(--surface-2); color:var(--ink);
+  }
+  .conv-input:focus{ outline:2px solid var(--accent-on); outline-offset:1px; }
+  .conv-unit{ font-size:0.8rem; color:var(--ink-faint); }
+  .conv-ref{
+    font-size:0.78rem; color:var(--ink-soft); background:var(--surface-2);
+    border-radius:var(--radius-sm); padding:8px 10px;
+  }
+  .conv-ref b{ color:var(--ink); }
+  .conv-legend{ display:flex; gap:14px; font-size:0.72rem; color:var(--ink-faint); }
+  .conv-legend span{ display:flex; align-items:center; gap:5px; }
+  .conv-legend .sw{ width:9px; height:9px; border-radius:3px; }
+  .conv-legend .sw.protein{ background:var(--accent-on); }
+  .conv-legend .sw.kcal{ background:var(--accent-off); }
+  .conv-chain{ display:flex; flex-direction:column; }
+  .conv-row{
+    display:flex; flex-direction:column; gap:6px;
+    padding:10px 4px; border-top:1px solid var(--line); font-size:0.86rem;
+  }
+  .conv-row:first-child{ border-top:none; }
+  .conv-row .name{ color:var(--ink); font-weight:600; }
+  .conv-values{ display:flex; gap:8px; flex-wrap:wrap; }
+  .conv-value{
+    display:flex; align-items:baseline; gap:5px; background:var(--surface-2);
+    border-radius:99px; padding:4px 10px; font-size:0.78rem;
+  }
+  .conv-value .lbl{ color:var(--ink-faint); }
+  .conv-value .num{ font-weight:600; color:var(--ink); }
+  .conv-note{ font-size:0.72rem; font-style:italic; color:var(--ink-faint); line-height:1.45; }
+
+  /* meal cards */
+  .meals{ display:flex; flex-direction:column; gap:14px; margin-top:18px; }
+  .meal{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow);
+    padding:14px 14px 6px 14px;
+  }
+  .meal-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+  .meal-title{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  .meal-title h2{ font-size:1.08rem; font-weight:600; }
+  .meal-time{ font-size:0.7rem; color:var(--ink-faint); font-weight:500; }
+
+  .done-toggle{
+    appearance:none; border:1px solid var(--line); background:var(--surface-2);
+    color:var(--ink-soft); font-family:inherit; font-size:0.74rem; font-weight:600;
+    padding:6px 10px; border-radius:99px; cursor:pointer; white-space:nowrap;
+    display:flex; align-items:center; gap:5px;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .done-toggle .dot{ width:7px; height:7px; border-radius:50%; background:var(--ink-faint); }
+  .done-toggle[data-done="true"]{ border-color:transparent; }
+  .meal[data-daytype="ON"] .done-toggle[data-done="true"]{ background:var(--accent-on-soft); color:var(--accent-on-ink); }
+  .meal[data-daytype="OFF"] .done-toggle[data-done="true"]{ background:var(--accent-off-soft); color:var(--accent-off-ink); }
+  .meal[data-daytype="ON"] .done-toggle[data-done="true"] .dot{ background:var(--accent-on); }
+  .meal[data-daytype="OFF"] .done-toggle[data-done="true"] .dot{ background:var(--accent-off); }
+
+  .options{ display:flex; flex-direction:column; }
+  .option{
+    appearance:none; border:none; background:transparent; text-align:left;
+    font-family:inherit; color:inherit; cursor:pointer;
+    padding:10px 8px; border-top:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .option:first-child{ border-top:none; }
+  .option:hover{ background:var(--surface-2); }
+  .chips{ display:flex; flex-wrap:wrap; gap:6px; }
+  .chip{
+    display:flex; align-items:baseline; gap:5px;
+    background:var(--surface-2); border-radius:99px;
+    padding:4px 10px 4px 10px; font-size:0.82rem;
+  }
+  .chip .q{ font-size:0.74rem; color:var(--ink-soft); }
+  .option.selected{ background:var(--accent-on-soft); }
+  .meal[data-daytype="OFF"] .option.selected{ background:var(--accent-off-soft); }
+  .option.selected .chip{ background:rgba(255,255,255,0.5); }
+  :root[data-theme="dark"] .option.selected .chip{ background:rgba(0,0,0,0.18); }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .option.selected .chip{ background:rgba(0,0,0,0.18); } }
+  .option-note{ font-size:0.72rem; font-style:italic; color:var(--ink-faint); max-width:60ch; }
+  .radio{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:16px; height:16px; border-radius:50%; border:1.5px solid var(--ink-faint);
+    flex:none; margin-right:2px;
+  }
+  .option.selected .radio{ border-color:var(--accent-on); }
+  .meal[data-daytype="OFF"] .option.selected .radio{ border-color:var(--accent-off); }
+  .option.selected .radio::after{ content:""; width:8px; height:8px; border-radius:50%; background:var(--accent-on); }
+  .meal[data-daytype="OFF"] .option.selected .radio::after{ background:var(--accent-off); }
+  .opt-row{ display:flex; align-items:flex-start; gap:8px; }
+
+  footer{ text-align:center; color:var(--ink-faint); font-size:0.72rem; margin-top:28px; line-height:1.5; }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="title-row">
+      <h1>Piano Alimentare</h1>
+    </div>
+
+    <div class="toggle" id="dayToggle">
+      <button type="button" data-day="ON"><span>Giorno ON</span><span class="kcal num">1500 kcal · allenamento</span></button>
+      <button type="button" data-day="OFF"><span>Giorno OFF</span><span class="kcal num">1400 kcal · riposo</span></button>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">0/5 pasti</div>
+    </div>
+  </header>
+
+  <details class="rules" id="rulesBox">
+    <summary>Regole generali <span class="chev">▾</span></summary>
+    <div class="rules-grid">
+      <div class="rule"><b>Pesare a crudo</b> — riso, pasta, cous cous, farro, avena, carne, pesce, patate.</div>
+      <div class="rule"><b>Olio EVO</b> — va sempre pesato, non variare le quantità.</div>
+      <div class="rule"><b>Da evitare</b> — carne rossa, zucchine, pistacchi.</div>
+      <div class="rule"><b>Acqua</b> — 2–2,5 litri al giorno.</div>
+      <div class="rule"><b>Creatina</b> — massimo 5 g al giorno.</div>
+      <div class="rule"><b>Varietà</b> — alternare il più possibile gli alimenti tra le combinazioni.</div>
+      <div class="rule"><b>Scelta libera</b> — in ogni pasto puoi scegliere qualsiasi combinazione proposta.</div>
+      <div class="rule"><b>Peso stabile</b> — normale nelle prime 2–3 settimane: si valuta la media nel tempo.</div>
+    </div>
+  </details>
+
+  <details class="rules" id="convBox">
+    <summary>Convertitore porzioni equivalenti <span class="chev">▾</span></summary>
+    <div class="conv-body">
+      <div class="conv-input-row">
+        <label for="convInput">Carne bianca</label>
+        <input type="number" id="convInput" class="conv-input num" value="150" min="0" step="5" inputmode="numeric">
+        <span class="conv-unit">g, crudo</span>
+      </div>
+      <div class="conv-ref" id="convRef"></div>
+      <div class="conv-legend">
+        <span><span class="sw protein"></span>a parità di proteine</span>
+        <span><span class="sw kcal"></span>a parità di kcal</span>
+      </div>
+      <div class="conv-chain" id="convList"></div>
+      <div class="conv-note">Stima orientativa basata su valori nutrizionali medi, non parte del piano prescritto dal tuo nutrizionista. Fagioli e ceci sono considerati in scatola, sgocciolati. Verifica con il tuo nutrizionista prima di usarla per sostituzioni regolari.</div>
+    </div>
+  </details>
+
+  <div class="meals" id="meals"></div>
+
+  <footer>Tocca una combinazione per segnarla come scelta del pasto. Usa il pulsante accanto al titolo per spuntarlo come fatto.</footer>
+</div>
+
+<script>
+(function(){
+  var NOTE_BASMATI = "Sostituisce, a parità di kcal, riso + pollo (70 g + 150 g): piatto unico bilanciato per variare le fonti proteiche.";
+
+  function opt(items, note){ return { items: items, note: note }; }
+
+  var PLAN = {
+    ON:{
+      kcal:1500, label:'Giorno ON', sub:'giorno di allenamento',
+      meals:[
+        { key:'colazione', name:'Colazione', options:[
+          opt([['Yogurt greco 0%','200 g'],['Avena','40 g'],['Frutti di bosco','100 g'],['Mandorle','10 g']]),
+          opt([['Uova','2'],['Albumi','150 g'],['Pane integrale','50 g'],['Kiwi','1']]),
+          opt([['Avena','40 g'],['Albumi','150 g'],['Uovo','1'],['Yogurt','100 g'],['Fragole','100 g']]),
+          opt([['Pane integrale','70 g'],['Fesa di tacchino','70 g'],['Formaggio light','30 g'],['Kiwi','1']]),
+          opt([['Avena','40 g'],['Latte scremato','200 ml'],['Whey','25 g'],['Fragole','100 g']]),
+          opt([['Skyr','250 g'],['Cereali integrali','35 g'],['Mela piccola','1'],['Noci','10 g']])
+        ]},
+        { key:'spuntino', name:'Spuntino', options:[
+          opt([['Skyr','170 g'],['Kiwi','1']]),
+          opt([['Whey','25 g'],['Mela','1']]),
+          opt([['Yogurt greco','150 g'],['Mandorle','10 g']]),
+          opt([['Fesa di tacchino','70 g'],['Gallette','2']]),
+          opt([['Uova sode','2'],['Frutto piccolo','1']]),
+          opt([['Fiocchi di latte','150 g'],['Kiwi','1']])
+        ]},
+        { key:'pranzo', name:'Pranzo', options:[
+          opt([['Riso','70 g'],['Pollo','150 g'],['Verdure','200–300 g'],['Olio EVO','10 g']]),
+          opt([['Pasta','70 g'],['Tacchino','150 g'],['Pomodoro','q.b.'],['Verdure','200 g'],['Olio EVO','10 g']]),
+          opt([['Gamberi','200 g'],['Riso','40 g'],['Verdure','250–300 g'],['Olio EVO','10 g']]),
+          opt([['Tonno','120 g'],['Uova','2'],['Pane','40 g'],['Verdure','300 g'],['Olio EVO','5 g']]),
+          opt([['Riso basmati','30 g'],['Legumi secchi','120 g'],['Verdure','200–300 g'],['Olio EVO','10 g']], NOTE_BASMATI)
+        ]},
+        { key:'preworkout', name:'Pre-workout', time:'ore 15:00', options:[
+          opt([['Banana','1'],['Whey','20 g']]),
+          opt([['Gallette','3'],['Whey','20 g']]),
+          opt([['Mela','1'],['Whey','20 g']]),
+          opt([['Fette biscottate','2'],['Whey','20 g']]),
+          opt([['Yogurt greco','150 g'],['Banana piccola','1']])
+        ]},
+        { key:'cena', name:'Cena / Post-workout', options:[
+          opt([['Salmone','140 g'],['Patate','180 g'],['Verdure','200–300 g'],['Olio EVO','5 g']]),
+          opt([['Merluzzo','200 g'],['Pane integrale','60 g'],['Verdure','200–300 g'],['Olio EVO','10 g']]),
+          opt([['Tacchino','160 g'],['Riso','50 g'],['Verdure','200–300 g'],['Olio EVO','5 g']]),
+          opt([['Orata/branzino','200 g'],['Patate','200 g'],['Verdure','200–300 g'],['Olio EVO','5 g']]),
+          opt([['Gamberi','200 g'],['Riso','50 g'],['Verdure','200–300 g'],['Olio EVO','10 g']]),
+          opt([['Omelette (2 uova + 200 g albumi)',''],['Pane','50 g'],['Verdure','200–300 g'],['Olio EVO','10 g']]),
+          opt([['Tonno','150 g'],['Pane','60 g'],['Insalata/pomodori','200–300 g'],['Olio EVO','10 g']]),
+          opt([['Riso basmati','30 g'],['Legumi secchi','120 g'],['Verdure','200–300 g'],['Olio EVO','10 g']], NOTE_BASMATI)
+        ]}
+      ]
+    },
+    OFF:{
+      kcal:1400, label:'Giorno OFF', sub:'giorno non allenante',
+      meals:[
+        { key:'colazione', name:'Colazione', options:[
+          opt([['Uova','2'],['Albumi','150 g'],['Pane','40 g'],['Kiwi','1']]),
+          opt([['Yogurt greco','250 g'],['Avena','30 g'],['Noci','10 g'],['Frutti di bosco','100 g']]),
+          opt([['Avena','40 g'],['Albumi','150 g'],['Uovo','1'],['Yogurt','100 g']]),
+          opt([['Pane','60 g'],['Fesa di tacchino','70 g'],['Formaggio light','30 g'],['Kiwi','1']]),
+          opt([['Avena','40 g'],['Latte','200 ml'],['Whey','25 g'],['Cannella','q.b.']]),
+          opt([['Fiocchi di latte','200 g'],['Pane','40 g'],['Frutto piccolo','1'],['Mandorle','10 g']])
+        ]},
+        { key:'spuntino', name:'Spuntino', options:[
+          opt([['Skyr','170 g'],['Mandorle','10 g']]),
+          opt([['Whey','25 g'],['Kiwi','1']]),
+          opt([['Yogurt greco','150 g'],['Noci','10 g']]),
+          opt([['Fesa di tacchino','100 g']]),
+          opt([['Uova sode','2']]),
+          opt([['Fiocchi di latte','150 g']])
+        ]},
+        { key:'pranzo', name:'Pranzo', options:[
+          opt([['Pollo','150 g'],['Riso','55 g'],['Verdure','250–300 g'],['Olio EVO','10 g']]),
+          opt([['Tacchino','160 g'],['Patate','200 g'],['Verdure','250–300 g'],['Olio EVO','10 g']]),
+          opt([['Tonno','150 g'],['Pane','50 g'],['Insalata/pomodori','250–300 g'],['Olio EVO','10 g']]),
+          opt([['Salmone','140 g'],['Patate','200 g'],['Verdure','250–300 g']]),
+          opt([['Pollo','150 g'],['Pasta integrale','50 g'],['Pomodoro/verdure','250–300 g'],['Olio EVO','10 g']]),
+          opt([['Uova','2'],['Albumi','150 g'],['Pane','40 g'],['Verdure','250–300 g'],['Olio EVO','10 g']]),
+          opt([['Gamberi','180 g'],['Riso','50 g'],['Verdure','250–300 g'],['Olio EVO','10 g']]),
+          opt([['Riso basmati','30 g'],['Legumi secchi','120 g'],['Verdure','250–300 g'],['Olio EVO','10 g']], NOTE_BASMATI)
+        ]},
+        { key:'spuntinopom', name:'Spuntino pomeridiano', options:[
+          opt([['Skyr','170 g']]),
+          opt([['Whey','25 g'],['Kiwi','1']]),
+          opt([['Yogurt greco','150 g'],['Mandorle','10 g']]),
+          opt([['Fiocchi di latte','100 g'],['Kiwi','1']]),
+          opt([['Fesa di tacchino','80 g'],['Gallette','2']]),
+          opt([['Uova sode','2']])
+        ]},
+        { key:'cena', name:'Cena', options:[
+          opt([['Merluzzo','200 g'],['Patate','180 g'],['Verdure','250–300 g'],['Olio EVO','10 g']]),
+          opt([['Pollo','160 g'],['Pane','40 g'],['Verdure','250–300 g'],['Olio EVO','10 g']]),
+          opt([['Tacchino','170 g'],['Patate','180 g'],['Verdure','250–300 g'],['Olio EVO','10 g']]),
+          opt([['Orata/branzino','200 g'],['Pane','40 g'],['Verdure','250–300 g'],['Olio EVO','10 g']]),
+          opt([['Omelette (2 uova + 200 g albumi)',''],['Pane','40 g'],['Verdure','250–300 g'],['Olio EVO','10 g']]),
+          opt([['Riso basmati','30 g'],['Legumi secchi','120 g'],['Verdure','250–300 g'],['Olio EVO','10 g']], NOTE_BASMATI)
+        ]}
+      ]
+    }
+  };
+
+  // Convertitore porzioni equivalenti — valori nutrizionali medi per 100 g, crudo/sgocciolato
+  var CONV_BASE = { protein:23, kcal:165 }; // carne bianca (petto pollo/tacchino, crudo)
+  var CONV_CHAIN = [
+    { name:'Pesce magro', protein:17, kcal:76 },
+    { name:'Pesce grasso', protein:20, kcal:208 },
+    { name:'Mozzarella senza lattosio', protein:18, kcal:253 },
+    { name:'Ricotta', protein:9, kcal:146 },
+    { name:'Uova', protein:12.5, kcal:130 },
+    { name:'Carne rossa (magra)', protein:21, kcal:137 },
+    { name:'Fagioli in scatola', protein:6.7, kcal:91 },
+    { name:'Ceci in scatola', protein:7.3, kcal:139 }
+  ];
+  var CONV_KEY = 'sara-piano:convGrams';
+
+  function renderConverter(){
+    var input = document.getElementById('convInput');
+    var grams = parseFloat(input.value);
+    if (!isFinite(grams) || grams < 0) grams = 0;
+    var proteinTarget = grams * CONV_BASE.protein / 100;
+    var kcalTarget = grams * CONV_BASE.kcal / 100;
+
+    document.getElementById('convRef').innerHTML =
+      'Riferimento: <b>' + Math.round(grams) + ' g</b> di carne bianca ≈ <b>' + Math.round(kcalTarget) + ' kcal</b> · <b>' +
+      Math.round(proteinTarget * 10) / 10 + ' g</b> di proteine.';
+
+    var list = document.getElementById('convList');
+    list.innerHTML = '';
+    CONV_CHAIN.forEach(function(f){
+      var eqProtein = f.protein > 0 ? (proteinTarget / f.protein * 100) : 0;
+      var eqKcal = f.kcal > 0 ? (kcalTarget / f.kcal * 100) : 0;
+      var row = el('div', 'conv-row');
+      row.innerHTML =
+        '<span class="name">' + f.name + '</span>' +
+        '<div class="conv-values">' +
+          '<span class="conv-value"><span class="lbl">proteine</span><span class="num">' + Math.round(eqProtein) + ' g</span></span>' +
+          '<span class="conv-value"><span class="lbl">kcal</span><span class="num">' + Math.round(eqKcal) + ' g</span></span>' +
+        '</div>';
+      list.appendChild(row);
+    });
+  }
+
+  function initConverter(){
+    var input = document.getElementById('convInput');
+    var saved = null;
+    try { saved = localStorage.getItem(CONV_KEY); } catch(e){}
+    if (saved) input.value = saved;
+    input.addEventListener('input', function(){
+      try { localStorage.setItem(CONV_KEY, input.value); } catch(e){}
+      renderConverter();
+    });
+    renderConverter();
+  }
+
+  var STORE_KEY = 'sara-piano:data';
+  var DAY_KEY = 'sara-piano:dayType';
+
+  function todayStr(){
+    try { return new Date().toLocaleDateString('sv-SE'); }
+    catch(e){ return new Date().toISOString().slice(0,10); }
+  }
+
+  function loadStore(){
+    var raw;
+    try { raw = localStorage.getItem(STORE_KEY); } catch(e){ raw = null; }
+    var data = {};
+    if (raw){ try { data = JSON.parse(raw) || {}; } catch(e){ data = {}; } }
+    // prune entries older than 14 days
+    var cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 14);
+    Object.keys(data).forEach(function(d){
+      if (new Date(d) < cutoff) delete data[d];
+    });
+    return data;
+  }
+  function saveStore(data){
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch(e){}
+  }
+
+  var store = loadStore();
+  var today = todayStr();
+  var dayType = 'ON';
+  try { dayType = localStorage.getItem(DAY_KEY) || 'ON'; } catch(e){}
+  if (dayType !== 'ON' && dayType !== 'OFF') dayType = 'ON';
+
+  function dayState(){
+    if (!store[today]) store[today] = {};
+    if (!store[today][dayType]) store[today][dayType] = { sel:{}, done:{} };
+    return store[today][dayType];
+  }
+
+  function setDayType(dt){
+    dayType = dt;
+    try { localStorage.setItem(DAY_KEY, dayType); } catch(e){}
+    render();
+  }
+
+  function toggleSelect(mealKey, idx){
+    var st = dayState();
+    st.sel[mealKey] = (st.sel[mealKey] === idx) ? undefined : idx;
+    saveStore(store);
+    render();
+  }
+  function toggleDone(mealKey){
+    var st = dayState();
+    st.done[mealKey] = !st.done[mealKey];
+    saveStore(store);
+    render();
+  }
+
+  function el(tag, cls, html){
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html !== undefined) e.innerHTML = html;
+    return e;
+  }
+
+  function renderToggle(){
+    var wrap = document.getElementById('dayToggle');
+    wrap.querySelectorAll('button').forEach(function(b){
+      b.setAttribute('data-on', String(b.getAttribute('data-day') === dayType));
+      b.onclick = function(){ setDayType(b.getAttribute('data-day')); };
+    });
+  }
+
+  function renderProgress(plan, st){
+    var total = plan.meals.length;
+    var done = plan.meals.filter(function(m){ return st.done[m.key]; }).length;
+    var pct = total ? Math.round(done / total * 100) : 0;
+    var fill = document.getElementById('progressFill');
+    fill.style.width = pct + '%';
+    fill.style.background = 'var(--accent-' + (dayType === 'ON' ? 'on' : 'off') + ')';
+    document.getElementById('progressLabel').textContent = done + '/' + total + ' pasti';
+  }
+
+  function renderMeals(plan, st){
+    var container = document.getElementById('meals');
+    container.innerHTML = '';
+    plan.meals.forEach(function(meal){
+      var card = el('div', 'meal');
+      card.setAttribute('data-daytype', dayType);
+
+      var head = el('div', 'meal-head');
+      var titleWrap = el('div', 'meal-title');
+      titleWrap.appendChild(el('h2', null, meal.name));
+      if (meal.time) titleWrap.appendChild(el('span', 'meal-time', meal.time));
+      head.appendChild(titleWrap);
+
+      var isDone = !!st.done[meal.key];
+      var doneBtn = el('button', 'done-toggle');
+      doneBtn.type = 'button';
+      doneBtn.setAttribute('data-done', String(isDone));
+      doneBtn.innerHTML = '<span class="dot"></span><span>' + (isDone ? 'Fatto' : 'Segna fatto') + '</span>';
+      doneBtn.onclick = function(){ toggleDone(meal.key); };
+      head.appendChild(doneBtn);
+
+      card.appendChild(head);
+
+      var optsWrap = el('div', 'options');
+      var selectedIdx = st.sel[meal.key];
+      meal.options.forEach(function(o, idx){
+        var optBtn = el('div', 'option' + (selectedIdx === idx ? ' selected' : ''));
+        optBtn.setAttribute('role', 'button');
+        optBtn.tabIndex = 0;
+
+        var row = el('div', 'opt-row');
+        row.appendChild(el('span', 'radio'));
+        var chips = el('div', 'chips');
+        o.items.forEach(function(pair){
+          var name = pair[0], qty = pair[1];
+          var chip = el('span', 'chip');
+          chip.innerHTML = '<span>' + name + '</span>' + (qty ? '<span class="q num">' + qty + '</span>' : '');
+          chips.appendChild(chip);
+        });
+        row.appendChild(chips);
+        optBtn.appendChild(row);
+
+        if (o.note) optBtn.appendChild(el('div', 'option-note', o.note));
+
+        optBtn.addEventListener('click', function(){ toggleSelect(meal.key, idx); });
+        optBtn.addEventListener('keydown', function(ev){
+          if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); toggleSelect(meal.key, idx); }
+        });
+        optsWrap.appendChild(optBtn);
+      });
+      card.appendChild(optsWrap);
+      container.appendChild(card);
+    });
+  }
+
+  function render(){
+    var plan = PLAN[dayType];
+    var st = dayState();
+    renderToggle();
+    renderProgress(plan, st);
+    renderMeals(plan, st);
+  }
+
+  render();
+  initConverter();
+})();
+</script>
